@@ -41,4 +41,7 @@ module_b:
 
 reporting:
   output_dir: reports/output
-  label_synthetic_data: true
+  # Synthetic-data labeling is not a toggle: reports/templates/module_a_cate_report.md.j2
+  # always shows the SYNTHETIC DATA banner when aces_source is aces_simulated.
+  # A config flag to disable that would contradict the constraint it enforces
+  # (BUILD_PLAN.md #5), so there's deliberately no label_synthetic_data setting here.
