@@ -1,0 +1,13 @@
+{# Module B output template.
+   Constraint: contradiction scores are always framed as "flagged for
+   human review," never as a deception/guilt verdict. Do not add wording
+   here (or in any other Module B template) that implies otherwise. #}
+# Statement Review Flags — Subject {{ subject_id }}
+
+The pairs below scored above the contradiction threshold and are
+**flagged for human review**. This is not a determination of deception,
+guilt, or credibility.
+
+{% for pair in flagged_pairs %}
+- Session {{ pair.session_a }} vs. Session {{ pair.session_b }}: "{{ pair.text_a }}" / "{{ pair.text_b }}" (score: {{ "%.2f"|format(pair.score) }})
+{% endfor %}

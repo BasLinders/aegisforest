@@ -1,0 +1,41 @@
+# aegisforest default configuration
+# Module A: causal recidivism analysis
+module_a:
+  data:
+    # Which ACEs (psychosocial confounder) source to load. Both sources conform
+    # to the schema in data/schema.py, so nothing downstream branches on this.
+    aces_source: aces_real  # one of: aces_real, aces_simulated
+    nij_path: data/raw/nij_recidivism.csv
+    compas_path: data/raw/compas.csv
+    aces_real_path: data/raw/aces_cdc_kaiser.csv
+
+  classifier:
+    model: xgboost  # one of: xgboost, logistic_regression
+    protected_attributes: [race, sex]
+    test_size: 0.2
+    random_state: 42
+
+  fairness_audit:
+    metrics: [calibration, false_positive_rate_parity]
+    subgroup_min_n: 30
+
+  causal:
+    treatment: supervision_intensity
+    outcome: reoffense
+    dag_path: models/causal/dag_spec.yaml
+    n_estimators: 500
+    refuters: [placebo_treatment_refuter, random_common_cause, data_subset_refuter]
+
+# Module B: statement contradiction detection
+module_b:
+  nli:
+    checkpoint: roberta-large-mnli
+    contradiction_threshold: 0.5
+    device: auto  # one of: auto, cpu, cuda
+  timeline_check:
+    enabled: false
+    ner_model: en_core_web_sm
+
+reporting:
+  output_dir: reports/output
+  label_synthetic_data: true
