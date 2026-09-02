@@ -34,6 +34,8 @@ aegisforest/
 ├── pyproject.toml
 ├── README.md
 ├── BUILD_PLAN.md                # this file
+├── app/
+│   └── streamlit_app.py          # Streamlit frontend (module A + B views)
 ├── config/
 │   └── default.yaml             # data source toggle (aces_real | aces_simulated), model params
 ├── data/
@@ -76,6 +78,7 @@ aegisforest/
 4. Module A causal layer (DAG → DML → refutation) on top of the working baseline.
 5. Module B NLI contradiction detector as an independent track (can be built in parallel with Module A).
 6. Reporting templates last, once both modules produce stable outputs to render.
+7. Streamlit frontend (`app/streamlit_app.py`) wired to the real pipeline once both modules produce stable output — pure Python, no separate build/CI pipeline. Run locally with `streamlit run app/streamlit_app.py`.
 
 ## 5. Open questions to resolve during build
 

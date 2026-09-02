@@ -10,3 +10,10 @@ Two independent modules:
 Explicit non-goals: no individual-level guilt/deception/violence-risk scoring, no biological/medical predictors of aggression, no causal claims beyond what DoWhy's refutation tests support.
 
 See [BUILD_PLAN.md](BUILD_PLAN.md) for full scope, design constraints, and build order.
+
+## Running the frontend
+
+```
+pip install -e ".[app]"
+streamlit run app/streamlit_app.py
+```
