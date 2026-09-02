@@ -11,18 +11,26 @@ Explicit non-goals: no individual-level guilt/deception/violence-risk scoring, n
 
 See [BUILD_PLAN.md](BUILD_PLAN.md) for full scope, design constraints, and build order.
 
+## Setup
+
+DoWhy caps at Python <3.14, so this project needs a dedicated interpreter
+rather than whatever Python happens to be newest on your machine:
+
+```
+py -3.13 -m venv .venv
+.venv\Scripts\pip install -e ".[dev,app]"
+```
+
 ## Running the frontend
 
 ```
-pip install -e ".[app]"
-streamlit run app/streamlit_app.py
+.venv\Scripts\streamlit run app/streamlit_app.py
 ```
 
 ## Testing
 
 ```
-pip install -e ".[dev]"
-pytest              # fast suite (~2s)
-pytest -m slow      # includes the causal-layer integration test, which
-                     # refits a real CausalForestDML and takes ~1 minute
+.venv\Scripts\pytest              # fast suite (~3s)
+.venv\Scripts\pytest -m slow      # includes the causal-layer integration test, which
+                                   # refits a real CausalForestDML and takes ~1 minute
 ```

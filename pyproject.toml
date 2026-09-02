@@ -3,7 +3,7 @@ name = "aegisforest"
 version = "0.1.0"
 description = "Causal analysis of criminal-justice intervention effects, extended with contradiction detection across suspect statements."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"  # dowhy 0.14 caps at <3.14; see README for the venv setup
 license = { text = "MIT" }
 
 dependencies = [
@@ -13,11 +13,8 @@ dependencies = [
     "scikit-learn>=1.4",
     "xgboost>=2.0",
     "econml>=0.15",
-    "dowhy>=0.8",
-    # dowhy 0.8 (its latest release) calls networkx.algorithms.d_separated,
-    # which networkx removed in 3.3+ in favor of is_d_separator. Pin below
-    # that until dowhy publishes a networkx-3.3+-compatible release.
-    "networkx>=3.2,<3.3",
+    "dowhy>=0.11",
+    "networkx>=3.2",
     "transformers>=4.40",
     "torch>=2.2",
     "spacy>=3.7",

@@ -29,15 +29,25 @@ def load_dag_spec(dag_path: str) -> dict:
 
 
 def _encode_categorical_columns(df: pd.DataFrame, columns: list[str]) -> tuple[pd.DataFrame, list[str]]:
-    """One-hot encode any object/category-dtype columns in `columns`.
+    """One-hot encode any string/category-dtype columns in `columns`.
 
     DoWhy's econml estimator passes common-cause / effect-modifier columns
     straight through to the estimator's nuisance models (model_y/model_t),
     with no preprocessing of its own — a raw string column reaches
     scikit-learn and errors out. Numeric columns pass through unchanged.
+
+    Uses pandas' is_string_dtype/is_categorical_dtype rather than matching
+    dtype names directly: pandas 3.0 introduced a native `str` dtype for
+    text columns (distinct from the legacy `object` dtype), so a literal
+    `dtype.name in ("object", "category")` check silently misses string
+    columns on pandas >=3.0.
+
     Returns the (possibly widened) dataframe and the updated column list.
     """
-    categorical = [c for c in columns if df[c].dtype.name in ("object", "category")]
+    categorical = [
+        c for c in columns
+        if pd.api.types.is_string_dtype(df[c]) or isinstance(df[c].dtype, pd.CategoricalDtype)
+    ]
     if not categorical:
         return df, columns
 
