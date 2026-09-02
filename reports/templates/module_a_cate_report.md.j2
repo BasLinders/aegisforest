@@ -1,0 +1,25 @@
+{# Module A causal report template.
+   Constraint: never render a CausalForestDML estimate without its
+   DoWhy refutation results attached, and always show the ACEs data
+   source ("real" vs "synthetic") so figures can't be mistaken for
+   real-data findings when synthetic data was used. #}
+# Treatment Effect Report — {{ treatment }} → {{ outcome }}
+
+{% if aces_source == "aces_simulated" %}
+> **SYNTHETIC DATA** — psychosocial confounders in this report were
+> generated from published population-level ACEs prevalence rates, not
+> observed individual data. Findings are illustrative only.
+{% endif %}
+
+## Estimated Effect (CATE)
+Average effect: {{ "%.3f"|format(ate) }}
+
+## Refutation Results
+{% for name, result in refutation_results.items() %}
+- **{{ name }}**: {{ result }}
+{% endfor %}
+
+{% if not refutation_results %}
+> No refutation tests were run — this estimate must not be treated as
+> validated. See `models/causal/refutation.py`.
+{% endif %}
