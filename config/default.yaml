@@ -11,7 +11,10 @@ module_a:
 
   classifier:
     model: xgboost  # one of: xgboost, logistic_regression
-    protected_attributes: [race, sex]
+    # race_ethnicity is absent for some sources (e.g. Dutch registries don't
+    # record it) — train_baseline/fairness_audit skip it when missing rather
+    # than requiring it.
+    protected_attributes: [race_ethnicity, sex]
     test_size: 0.2
     random_state: 42
 
