@@ -16,7 +16,7 @@ Average effect: {{ "%.3f"|format(ate) }}
 
 ## Refutation Results
 {% for name, result in refutation_results.items() %}
-- **{{ name }}**: {{ result }}
+- **{{ name }}**: estimated effect {{ "%.3f"|format(result.estimated_effect) }} → new effect {{ "%.3f"|format(result.new_effect) }}{% if result.p_value is not none %}, p={{ "%.3f"|format(result.p_value) }}{% endif %}
 {% endfor %}
 
 {% if not refutation_results %}
