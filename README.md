@@ -17,3 +17,12 @@ See [BUILD_PLAN.md](BUILD_PLAN.md) for full scope, design constraints, and build
 pip install -e ".[app]"
 streamlit run app/streamlit_app.py
 ```
+
+## Testing
+
+```
+pip install -e ".[dev]"
+pytest              # fast suite (~2s)
+pytest -m slow      # includes the causal-layer integration test, which
+                     # refits a real CausalForestDML and takes ~1 minute
+```

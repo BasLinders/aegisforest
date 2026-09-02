@@ -13,8 +13,11 @@ dependencies = [
     "scikit-learn>=1.4",
     "xgboost>=2.0",
     "econml>=0.15",
-    "dowhy>=0.11",
-    "networkx>=3.2",
+    "dowhy>=0.8",
+    # dowhy 0.8 (its latest release) calls networkx.algorithms.d_separated,
+    # which networkx removed in 3.3+ in favor of is_d_separator. Pin below
+    # that until dowhy publishes a networkx-3.3+-compatible release.
+    "networkx>=3.2,<3.3",
     "transformers>=4.40",
     "torch>=2.2",
     "spacy>=3.7",
@@ -41,6 +44,10 @@ include = ["data*", "models*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = [
+    "slow: refits a real model (e.g. CausalForestDML) and can take ~1 minute; run explicitly with -m slow",
+]
 
 [tool.ruff]
 line-length = 100
