@@ -1,6 +1,6 @@
 # aegisforest
 
-Personal portfolio project. Not built for or deployed by any law-enforcement organization.
+Causal effect analysis of justice-system interventions, extended with statement contradiction flagging for human review. Personal portfolio project — not built for or deployed by any law-enforcement organization.
 
 Two independent modules:
 
