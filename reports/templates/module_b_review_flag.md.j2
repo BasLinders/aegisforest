@@ -9,5 +9,5 @@ The pairs below scored above the contradiction threshold and are
 guilt, or credibility.
 
 {% for pair in flagged_pairs %}
-- Session {{ pair.session_a }} vs. Session {{ pair.session_b }}: "{{ pair.text_a }}" / "{{ pair.text_b }}" (score: {{ "%.2f"|format(pair.score) }})
+- Session {{ pair.session_id_a }} vs. Session {{ pair.session_id_b }}: "{{ pair.text_a }}" / "{{ pair.text_b }}" (score: {{ "%.2f"|format(pair.contradiction_score) }})
 {% endfor %}

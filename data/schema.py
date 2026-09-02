@@ -63,3 +63,23 @@ def validate_recidivism_schema(df) -> None:
     missing = REQUIRED_RECIDIVISM_COLUMNS - set(df.columns)
     if missing:
         raise ValueError(f"Recidivism dataframe missing required columns: {sorted(missing)}")
+
+
+# Schema for a subject's interview statements, chunked one row per
+# sentence/passage, feeding models/nli/contradiction.py. `session_id`
+# distinguishes separate interview sessions for the same subject — the
+# contradiction scorer only compares statements across different sessions,
+# never within one.
+STATEMENTS_SCHEMA: dict[str, str] = {
+    "subject_id": "string",
+    "session_id": "string",
+    "statement_id": "string",
+    "text": "string",
+}
+
+
+def validate_statements_schema(df) -> None:
+    """Raise ValueError if `df` does not conform to STATEMENTS_SCHEMA."""
+    missing = set(STATEMENTS_SCHEMA) - set(df.columns)
+    if missing:
+        raise ValueError(f"Statements dataframe missing required columns: {sorted(missing)}")
