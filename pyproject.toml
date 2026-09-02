@@ -3,7 +3,7 @@ name = "aegisforest"
 version = "0.1.0"
 description = "Causal analysis of criminal-justice intervention effects, extended with contradiction detection across suspect statements."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"  # dowhy 0.14 caps at <3.14; see README for the venv setup
 license = { text = "MIT" }
 
 dependencies = [
@@ -41,6 +41,10 @@ include = ["data*", "models*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = [
+    "slow: refits a real model (e.g. CausalForestDML) and can take ~1 minute; run explicitly with -m slow",
+]
 
 [tool.ruff]
 line-length = 100

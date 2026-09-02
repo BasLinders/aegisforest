@@ -24,7 +24,7 @@ module_a:
 
   causal:
     treatment: supervision_intensity
-    outcome: reoffense
+    outcome: recidivated  # matches RECIDIVISM_SCHEMA's outcome column
     dag_path: models/causal/dag_spec.yaml
     n_estimators: 500
     refuters: [placebo_treatment_refuter, random_common_cause, data_subset_refuter]

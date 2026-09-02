@@ -1,0 +1,17 @@
+# Confounders (common causes of treatment and outcome) and effect
+# modifiers (variables the treatment effect is allowed to vary by) for the
+# supervision_intensity -> recidivated causal question.
+#
+# ace_score comes from the ACEs psychosocial layer (data/loaders/aces_*.py)
+# and must be joined onto the recidivism dataframe by subject_id before
+# this DAG can be used for a real dataset — that join isn't wired up yet.
+# It's listed as an effect modifier, not a plain common cause: the point of
+# adding it isn't just to control for it, it's to let the treatment effect
+# vary by psychosocial adversity (heterogeneous treatment effects).
+common_causes:
+  - age
+  - prior_convictions
+  - offense_type
+
+effect_modifiers:
+  - ace_score
