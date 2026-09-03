@@ -81,10 +81,14 @@ def _contradiction_score(label_scores: list[dict[str, Any]]) -> float:
     raise ValueError(f"No contradiction label found in pipeline output: {label_scores}")
 
 
-def _cross_session_pairs(statements: pd.DataFrame):
+def cross_session_pairs(statements: pd.DataFrame):
     """Yield (row_a, row_b) for every pair of statements from the same
     subject but different sessions. Same-session pairs are excluded: the
-    point is inconsistency across interviews, not within one."""
+    point is inconsistency across interviews, not within one.
+
+    Shared with `timeline_check.py`, so both Module B checks agree on
+    what counts as a comparable pair of statements.
+    """
     for _, group in statements.groupby("subject_id"):
         for row_a, row_b in combinations(group.itertuples(), 2):
             if row_a.session_id != row_b.session_id:
@@ -115,7 +119,7 @@ def score_contradictions(
     """
     validate_statements_schema(statements)
 
-    pairs = list(_cross_session_pairs(statements))
+    pairs = list(cross_session_pairs(statements))
     if not pairs:
         return pd.DataFrame(columns=RESULT_COLUMNS)
 
