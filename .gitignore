@@ -17,3 +17,5 @@ reports/output/
 htmlcov/
 
 .env
+
+.claude/
