@@ -22,8 +22,20 @@ from dowhy.causal_identifier import IdentifiedEstimand
 
 # Default kwargs per refuter, passed to CausalModel.refute_estimate. Only
 # random_common_cause needs none.
+#
+# placebo_treatment_refuter deliberately omits placebo_type="permute": that
+# path (dowhy/causal_refuters/placebo_treatment_refuter.py's PERMUTE branch)
+# does `data[treatment_names].values` where treatment_names is a list, which
+# returns a 2D array even for a single treatment column. Older pandas
+# silently handled assigning that as a new column; pandas 3.0's stricter
+# maybe_convert_objects raises `ValueError: Buffer has wrong number of
+# dimensions (expected 1, got 2)` instead. That's a real bug in dowhy 0.14
+# against pandas 3.0, not something fixable from here — the default
+# placebo_type (resample the treatment from a random distribution instead
+# of permuting it) hits a different code path that works correctly and is
+# still a legitimate placebo strategy, so that's what's used instead.
 _REFUTER_KWARGS: dict[str, dict] = {
-    "placebo_treatment_refuter": {"placebo_type": "permute"},
+    "placebo_treatment_refuter": {},
     "random_common_cause": {},
     "data_subset_refuter": {"subset_fraction": 0.8},
 }

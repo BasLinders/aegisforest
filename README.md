@@ -23,6 +23,12 @@ py -3.13 -m venv .venv
 
 ## Running the frontend
 
+Wired to the real pipeline — Module A runs synthetic recidivism/ACEs data
+through the actual classifier, fairness audit, and causal layer (the
+causal fit is genuinely slow, several minutes, gated behind a button);
+Module B runs analyst-entered statements through the actual NLI
+checkpoint (a ~1.1GB download on first use):
+
 ```
 .venv\Scripts\streamlit run app/streamlit_app.py
 ```

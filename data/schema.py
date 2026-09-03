@@ -36,11 +36,14 @@ def validate_aces_schema(df) -> None:
 
 # Schema shared by every recidivism data source (COMPAS, NIJ, WODC Recidivism
 # Monitor, ...) so the classifier and causal layer don't branch on which
-# loader produced the dataframe. `race_ethnicity` is nullable: not every
-# jurisdiction's registries record it — Dutch criminal-justice data
-# generally doesn't, since it's treated as special-category data under the
-# AVG/GDPR. Fairness/confounder code must handle it being absent for a given
-# source rather than assume it's always populated.
+# loader produced the dataframe. `race_ethnicity` and `country_of_birth` are
+# both nullable, and mutually exclusive in practice: US sources populate
+# race_ethnicity and leave country_of_birth null (it's not what US registries
+# track); NL sources do the reverse — Dutch criminal-justice data generally
+# doesn't record race (special-category data under the AVG/GDPR) but does
+# report by migration background/country of birth. Fairness/confounder code
+# must handle either being absent for a given source rather than assume one
+# is always populated.
 RECIDIVISM_SCHEMA: dict[str, str] = {
     "subject_id": "string",
     "source": "category",  # e.g. "compas", "nij", "wodc_recidivism_monitor"
@@ -48,20 +51,22 @@ RECIDIVISM_SCHEMA: dict[str, str] = {
     "age": "int64",
     "sex": "category",
     "race_ethnicity": "category",  # nullable — see caveat above
+    "country_of_birth": "category",  # nullable — see caveat above
     "prior_convictions": "int64",
     "offense_type": "category",
     "supervision_intensity": "category",  # the DML treatment variable
     "recidivated": "bool",  # outcome
 }
 
-REQUIRED_RECIDIVISM_COLUMNS = set(RECIDIVISM_SCHEMA) - {"race_ethnicity"}
+REQUIRED_RECIDIVISM_COLUMNS = set(RECIDIVISM_SCHEMA) - {"race_ethnicity", "country_of_birth"}
 
 
 def validate_recidivism_schema(df) -> None:
     """Raise ValueError if `df` does not conform to RECIDIVISM_SCHEMA.
 
-    `race_ethnicity` is exempt from the required-columns check (see
-    RECIDIVISM_SCHEMA docstring) but if present must still be a valid column.
+    `race_ethnicity` and `country_of_birth` are exempt from the
+    required-columns check (see RECIDIVISM_SCHEMA docstring) but if present
+    must still be valid columns.
     """
     missing = REQUIRED_RECIDIVISM_COLUMNS - set(df.columns)
     if missing:
