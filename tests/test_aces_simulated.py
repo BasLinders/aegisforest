@@ -1,6 +1,12 @@
 import pandas as pd
+import pytest
 
-from data.loaders.aces_simulated import ACE_CATEGORIES, generate_aces_simulated
+from data.loaders.aces_simulated import (
+    ACE_CATEGORIES,
+    COUNTRY_CATEGORIES,
+    RACE_CATEGORIES,
+    generate_aces_simulated,
+)
 from data.schema import validate_aces_schema
 
 
@@ -33,3 +39,25 @@ def test_different_seed_gives_different_data():
     df1 = generate_aces_simulated(300, random_state=7)
     df2 = generate_aces_simulated(300, random_state=8)
     assert df1["ace_score"].tolist() != df2["ace_score"].tolist()
+
+
+def test_us_jurisdiction_is_default_and_uses_race_strata():
+    df = generate_aces_simulated(300, random_state=3)
+    assert (df["jurisdiction"] == "US").all()
+    strata = {s.rsplit("_", 1)[0] for s in df["demographic_stratum"]}
+    assert strata <= set(RACE_CATEGORIES)
+
+
+def test_nl_jurisdiction_uses_country_of_birth_strata():
+    df = generate_aces_simulated(300, random_state=3, jurisdiction="NL")
+    assert (df["jurisdiction"] == "NL").all()
+    validate_aces_schema(df)
+    strata = {s.rsplit("_", 1)[0] for s in df["demographic_stratum"]}
+    assert strata <= set(COUNTRY_CATEGORIES)
+    # NL strata are country of birth, never a race category
+    assert not (strata & set(RACE_CATEGORIES))
+
+
+def test_unknown_jurisdiction_raises():
+    with pytest.raises(ValueError, match="Unknown jurisdiction"):
+        generate_aces_simulated(10, jurisdiction="DE")

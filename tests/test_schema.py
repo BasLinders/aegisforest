@@ -9,6 +9,7 @@ def _valid_df() -> pd.DataFrame:
         {
             "subject_id": ["s1"],
             "source": ["aces_real"],
+            "jurisdiction": ["US"],
             "demographic_stratum": ["a"],
             "ace_score": [3],
             "adversity_flags": [["poverty"]],
