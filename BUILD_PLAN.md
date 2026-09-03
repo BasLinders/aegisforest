@@ -11,9 +11,9 @@ Core idea: Causal (not purely predictive) analysis of criminal-justice intervent
 - Baseline: XGBoost / logistic regression classifier on COMPAS + NIJ Recidivism Forecasting Challenge data, with a fairness audit (calibration + false-positive-rate parity across demographic subgroups — replicate the ProPublica COMPAS critique as a sanity check).
 - Causal layer: Double Machine Learning / causal forests (EconML `CausalForestDML`, DoWhy for DAG specification and refutation tests) estimating heterogeneous treatment effects of supervision intensity / program enrollment on reoffense — not a risk-of-reoffense score, an effect-of-intervention estimate.
 - Confounder layer: psychosocial variables (ACEs-style adversity indicators), with two interchangeable data sources, selectable via config:
-  - `source: aces_real` (default) — real, de-identified, publicly available ACEs data (CDC-Kaiser ACE Study public-use files, or YRBSS state-level adversity/justice-contact data).
-  - `source: aces_simulated` — synthetic psychosocial layer generated from published population-level ACEs prevalence rates by demographic strata (CDC BRFSS ACE module), clearly labeled as synthetic in all outputs and reports.
-  - Both sources must conform to the same schema so downstream pipeline code is source-agnostic.
+  - `source: aces_real` (default) — real, de-identified, publicly available ACEs data (CDC-Kaiser ACE Study public-use files, or YRBSS state-level adversity/justice-contact data for US; no direct equivalent survey exists for NL — see `data/loaders/aces_real_loader.py`).
+  - `source: aces_simulated` — synthetic psychosocial layer generated from published population-level ACEs prevalence rates by demographic strata, clearly labeled as synthetic in all outputs and reports. Jurisdiction-aware: US strata by race x sex (CDC BRFSS ACE module), NL strata by country of birth x sex (Dutch criminal-justice registries generally don't record race; the NL table uses CBS child-poverty rates by country of birth as a proxy — see `data/loaders/aces_simulated.py`).
+  - Both sources must conform to the same schema (`data/schema.py`'s `ACES_SCHEMA`, which includes `jurisdiction`) so downstream pipeline code is source-agnostic. The classifier, fairness audit, and causal layer are all schema/column-driven and don't hardcode US-specific categories — but there's no NL recidivism data loader yet (`nij_loader.py`/`compas_loader.py` are both US-specific), so a full NL pipeline run needs that written first.
 
 ### Module B — Statement contradiction detection
 
@@ -43,7 +43,7 @@ aegisforest/
 │   │   ├── nij_loader.py
 │   │   ├── compas_loader.py
 │   │   ├── aces_real_loader.py
-│   │   └── aces_simulated.py    # synthetic generator from BRFSS prevalence tables
+│   │   └── aces_simulated.py    # synthetic generator, US (race) and NL (country of birth)
 │   └── schema.py                 # shared schema both aces sources must satisfy
 ├── models/
 │   ├── classifier/
@@ -84,4 +84,6 @@ aegisforest/
 
 - Exact source/access method for CDC-Kaiser ACE public-use files (may require a data-use request even for public-use tier — confirm before assuming direct download).
 - Whether NIJ dataset's supervision-level field is granular enough to serve as a clean binary/ordinal treatment variable for DML, or needs recoding.
-- Final choice of pretrained NLI checkpoint (base vs. large trade-off given local compute).
+- Final choice of pretrained NLI checkpoint (base vs. large trade-off given local compute). For NL statements specifically, `roberta-large-mnli` (English-only, MultiNLI) doesn't apply — needs a Dutch or multilingual NLI checkpoint, not yet evaluated.
+- No NL recidivism data loader exists yet — only the ACEs confounder layer is jurisdiction-aware so far. A real one would likely draw on WODC's Recidivism Monitor or CBS/politie open crime data (see project memory / earlier discussion on public Dutch sources).
+- Real NL ACEs data has no direct survey equivalent to CDC-Kaiser/YRBSS; `aces_real_loader.py`'s NL path would mean reshaping WODC/CBS adversity-adjacent statistics to `ACES_SCHEMA`, not loading a comparable existing dataset.

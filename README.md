@@ -4,7 +4,7 @@ Causal effect analysis of justice-system interventions, extended with statement 
 
 Two independent modules:
 
-- **Module A** — causal (not purely predictive) analysis of criminal-justice intervention effects: a baseline recidivism classifier with a fairness audit, plus a causal layer (DoWhy + EconML `CausalForestDML`) estimating heterogeneous treatment effects of supervision intensity / program enrollment on reoffense.
+- **Module A** — causal (not purely predictive) analysis of criminal-justice intervention effects: a baseline recidivism classifier with a fairness audit, plus a causal layer (DoWhy + EconML `CausalForestDML`) estimating heterogeneous treatment effects of supervision intensity / program enrollment on reoffense. Schema-driven and jurisdiction-aware for the ACEs confounder layer (US: race x sex; NL: country of birth x sex, since Dutch registries generally don't record race) — see [BUILD_PLAN.md](BUILD_PLAN.md) for what's actually wired up per jurisdiction today.
 - **Module B** — contradiction detection across a subject's statements over multiple interview sessions, using pairwise NLI. Output is always framed as "flagged for human review," never as a deception or guilt signal.
 
 Explicit non-goals: no individual-level guilt/deception/violence-risk scoring, no biological/medical predictors of aggression, no causal claims beyond what DoWhy's refutation tests support.

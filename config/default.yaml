@@ -5,6 +5,12 @@ module_a:
     # Which ACEs (psychosocial confounder) source to load. Both sources conform
     # to the schema in data/schema.py, so nothing downstream branches on this.
     aces_source: aces_real  # one of: aces_real, aces_simulated
+    # US strata by race x sex; NL strata by country of birth x sex (Dutch
+    # registries generally don't record race — see data/loaders/aces_simulated.py).
+    # Only affects the ACEs layer here; there's no NL recidivism loader yet
+    # (nij_loader.py/compas_loader.py are both US-specific), so a full NL
+    # pipeline run also needs that loader written first.
+    jurisdiction: US  # one of: US, NL
     nij_path: data/raw/nij_recidivism.csv
     compas_path: data/raw/compas.csv
     aces_real_path: data/raw/aces_cdc_kaiser.csv
@@ -32,6 +38,9 @@ module_a:
 # Module B: statement contradiction detection
 module_b:
   nli:
+    # English-only (trained on MultiNLI) — Dutch statements need a Dutch or
+    # multilingual NLI checkpoint instead; not yet chosen/evaluated, see
+    # BUILD_PLAN.md's open questions.
     checkpoint: roberta-large-mnli
     contradiction_threshold: 0.5
     device: auto  # one of: auto, cpu, cuda

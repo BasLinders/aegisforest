@@ -8,6 +8,13 @@ this project's causal question is a single treatment -> single outcome
 estimand with a fixed confounder set, not a network with multiple
 competing causal paths, so a flat list captures it without pulling in a
 graph-description dependency.
+
+Jurisdiction-agnostic by construction: dag_spec.yaml's confounders (age,
+prior_convictions, offense_type) and effect modifier (ace_score) are all
+plain RECIDIVISM_SCHEMA/ACES_SCHEMA columns with no US- or NL-specific
+category baked in here — unlike the classifier's protected-attribute
+handling, this module never touches race_ethnicity or demographic_stratum
+at all.
 """
 
 from __future__ import annotations

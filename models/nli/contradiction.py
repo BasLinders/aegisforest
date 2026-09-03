@@ -6,6 +6,16 @@ always be surfaced as "flagged for human review" — never as a
 deception/guilt signal. `flagged` is the only field any output template
 may treat as meaningful; that framing is enforced at the
 output-template level (`reports/templates/`), not just in prose.
+
+Jurisdiction caveat: this module itself doesn't care what language the
+statements are in — it just calls whatever `checkpoint` config gives it —
+but the default, `roberta-large-mnli`, is trained on English MultiNLI and
+will not produce meaningful scores on Dutch text. Using this for Dutch
+statements requires swapping `module_b.nli.checkpoint` in
+config/default.yaml to a Dutch or multilingual NLI model (e.g. one
+fine-tuned on the Dutch or XNLI portion of a multilingual NLI corpus) —
+this hasn't been evaluated or chosen yet, see BUILD_PLAN.md's open
+questions.
 """
 
 from __future__ import annotations
