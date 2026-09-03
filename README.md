@@ -63,3 +63,7 @@ tens of minutes on CPU for the full ~4900-pair test split):
 .venv\Scripts\python scripts/benchmark_nli_checkpoint.py
 .venv\Scripts\python scripts/benchmark_nli_checkpoint.py --limit 500  # quicker, less precise
 ```
+
+## License
+This repository is not licensed for use, modification, or distribution.
+All rights reserved.
