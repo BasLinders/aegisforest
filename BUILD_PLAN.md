@@ -59,6 +59,8 @@ aegisforest/
 ├── notebooks/                    # exploratory analysis, not production code
 ├── reports/
 │   └── templates/                # output templates emphasizing CATE framing, not risk scores
+├── scripts/
+│   └── benchmark_nli_checkpoint.py  # evaluates the Module B checkpoint against real Dutch NLI data (SICK-NL)
 └── tests/
 ```
 
@@ -84,6 +86,7 @@ aegisforest/
 
 - Exact source/access method for CDC-Kaiser ACE public-use files (may require a data-use request even for public-use tier — confirm before assuming direct download).
 - Whether NIJ dataset's supervision-level field is granular enough to serve as a clean binary/ordinal treatment variable for DML, or needs recoding.
-- ~~Final choice of pretrained NLI checkpoint~~ — resolved: `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7`, chosen over Dutch-only alternatives (e.g. `LoicDL/bert-base-dutch-cased-finetuned-snli`) specifically so one checkpoint covers both US and NL statements, and over plain-XNLI multilingual models (e.g. `joeddav/xlm-roberta-large-xnli`) since XNLI's 15 languages don't include Dutch. Not yet benchmarked against real Dutch statement data — that's still open.
+- ~~Final choice of pretrained NLI checkpoint~~ — resolved: `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7`, chosen over Dutch-only alternatives (e.g. `LoicDL/bert-base-dutch-cased-finetuned-snli`) specifically so one checkpoint covers both US and NL statements, and over plain-XNLI multilingual models (e.g. `joeddav/xlm-roberta-large-xnli`) since XNLI's 15 languages don't include Dutch.
+  ~~Benchmarked against real Dutch statement data~~ — resolved: `scripts/benchmark_nli_checkpoint.py` against [SICK-NL](https://github.com/gijswijnholds/sick_nl) (first 500 of 4906 test pairs — the full run is CPU-heavy, ~27 min): **67.6% accuracy, 65.6% macro-F1**. Per-label recall: ENTAILMENT 71.1%, NEUTRAL 61.7%, CONTRADICTION 90.5% — the checkpoint rarely misses a real contradiction, but over-flags neutral pairs as contradictions (CONTRADICTION precision only 42.5%: more than half of what it flags isn't actually a contradiction in the ground truth). That's a defensible operating point given `flagged` already means "send to human review," not "verdict" — but it means the false-positive rate on real Module B output will be meaningfully high, worth stating explicitly in any report this produces. Caveat: SICK-NL is machine-translated general-domain image-caption pairs, not naturally-authored Dutch interview/interrogation statements — no domain-matched Dutch benchmark exists, so this is a proxy evaluation, same spirit as the ACEs synthetic table's poverty-rate proxy.
 - No NL recidivism data loader exists yet — only the ACEs confounder layer is jurisdiction-aware so far. A real one would likely draw on WODC's Recidivism Monitor or CBS/politie open crime data (see project memory / earlier discussion on public Dutch sources).
 - Real NL ACEs data has no direct survey equivalent to CDC-Kaiser/YRBSS; `aces_real_loader.py`'s NL path would mean reshaping WODC/CBS adversity-adjacent statistics to `ACES_SCHEMA`, not loading a comparable existing dataset.

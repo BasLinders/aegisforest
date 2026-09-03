@@ -34,3 +34,16 @@ py -3.13 -m venv .venv
 .venv\Scripts\pytest -m slow      # includes the causal-layer integration test, which
                                    # refits a real CausalForestDML and takes ~1 minute
 ```
+
+## Benchmarking the NLI checkpoint
+
+`scripts/benchmark_nli_checkpoint.py` evaluates Module B's NLI checkpoint
+against [SICK-NL](https://github.com/gijswijnholds/sick_nl), a human-annotated
+Dutch NLI dataset — not part of the test suite (needs network access, takes
+tens of minutes on CPU for the full ~4900-pair test split):
+
+```
+.venv\Scripts\pip install -e ".[benchmark]"
+.venv\Scripts\python scripts/benchmark_nli_checkpoint.py
+.venv\Scripts\python scripts/benchmark_nli_checkpoint.py --limit 500  # quicker, less precise
+```

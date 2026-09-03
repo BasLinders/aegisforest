@@ -17,6 +17,13 @@ one checkpoint — no jurisdiction-conditional swap needed. It uses the
 same entailment/neutral/contradiction label scheme as the
 English-only RoBERTa-large-MNLI checkpoint this replaced, so
 `_contradiction_score`'s label matching didn't need to change.
+
+Benchmarked against real Dutch NLI data (SICK-NL, via
+scripts/benchmark_nli_checkpoint.py): 67.6% accuracy / 65.6% macro-F1 on
+a 500-pair sample, with high recall on real contradictions (90.5%) but
+notably lower precision (42.5% — over-flags neutral pairs). That
+precision profile is why `flagged` must stay review-only, not a verdict:
+see BUILD_PLAN.md's open questions for the full breakdown and caveats.
 """
 
 from __future__ import annotations

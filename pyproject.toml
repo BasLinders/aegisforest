@@ -32,6 +32,13 @@ dev = [
 app = [
     "streamlit>=1.35",
 ]
+benchmark = [
+    "datasets>=2.19",
+    # Optional: only needed behind a TLS-intercepting proxy where `requests`
+    # doesn't trust the local cert store by default. See
+    # scripts/benchmark_nli_checkpoint.py.
+    "pip-system-certs>=4",
+]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
