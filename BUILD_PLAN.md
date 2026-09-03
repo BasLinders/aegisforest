@@ -1,4 +1,4 @@
-# aegisforest — Project Handoff
+# aegisforest — Construction Plan
 
 Repo: https://github.com/BasLinders/aegisforest
 Status: Personal portfolio project. Not built for or deployed by any law-enforcement organization.
