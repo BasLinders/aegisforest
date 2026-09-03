@@ -19,7 +19,7 @@ Core idea: Causal (not purely predictive) analysis of criminal-justice intervent
 
 - NLI model applied pairwise across statement chunks from the same subject across interview sessions. Default checkpoint is multilingual (`MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7`, trained on ~105k Dutch NLI pairs alongside English), so it covers both US and NL statements with one checkpoint — no jurisdiction-conditional swap needed.
 - Output: contradiction-likelihood scores per sentence pair, surfaced as "flagged for human review," never as a deception/guilt signal.
-- Optional extension: lightweight NER (spaCy) + timeline/entity consistency checks layered on top of NLI scores.
+- Optional extension (implemented, off by default): lightweight NER (spaCy) + timeline/entity consistency checks layered on top of NLI scores — flags cross-session statement pairs whose named locations/dates/people are completely disjoint for a given entity type. Complements the NLI check rather than replacing it: it has no negation handling, so "I was in Chicago" vs. "I never went to Chicago" isn't flagged by this alone.
 
 ### Explicit non-goals
 
@@ -55,7 +55,7 @@ aegisforest/
 │   │   └── refutation.py         # placebo treatment, random common cause, subset refuter
 │   └── nli/
 │       ├── contradiction.py      # pairwise NLI scoring across statement sessions
-│       └── timeline_check.py     # optional NER + entity consistency layer
+│       └── timeline_check.py     # optional NER + entity consistency layer (off by default)
 ├── notebooks/                    # exploratory analysis, not production code
 ├── reports/
 │   └── templates/                # output templates emphasizing CATE framing, not risk scores

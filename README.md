@@ -35,6 +35,16 @@ py -3.13 -m venv .venv
                                    # refits a real CausalForestDML and takes ~1 minute
 ```
 
+## Using the timeline check extension
+
+`models/nli/timeline_check.py` (off by default — `module_b.timeline_check.enabled`)
+needs a spaCy model downloaded separately from `pip install`:
+
+```
+.venv\Scripts\python -m spacy download en_core_web_sm  # US (English)
+.venv\Scripts\python -m spacy download nl_core_news_sm  # NL (Dutch)
+```
+
 ## Benchmarking the NLI checkpoint
 
 `scripts/benchmark_nli_checkpoint.py` evaluates Module B's NLI checkpoint

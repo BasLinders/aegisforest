@@ -50,7 +50,12 @@ module_b:
     device: auto  # one of: auto, cpu, cuda
   timeline_check:
     enabled: false
-    ner_model: en_core_web_sm
+    # Unlike the NLI checkpoint above, there's no single multilingual spaCy
+    # model of comparable quality — this must be swapped per jurisdiction:
+    # en_core_web_sm for US (English), nl_core_news_sm for NL (Dutch). Both
+    # share the same entity label scheme, so nothing else in
+    # timeline_check.py needs to change when swapping this.
+    ner_model: en_core_web_sm  # or: nl_core_news_sm
 
 reporting:
   output_dir: reports/output
