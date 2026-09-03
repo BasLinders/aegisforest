@@ -39,7 +39,8 @@ ACE_CATEGORIES: tuple[str, ...] = (
     "household_member_incarcerated",
 )
 
-RACE_CATEGORIES: tuple[str, ...] = ("White", "Black", "Hispanic", "Other")
+RACE_CATEGORIES: tuple[str, ...] = ("White", "Black", "Hispanic", "Asian", "Other")
+COUNTRY_CATEGORIES: tuple[str, ...] = ("Türkiye", "Morocco", "Suriname", "Dutch Caribbean Islands", "Indonesia") # Specifically recorded in the Dutch criminal justice system
 SEX_CATEGORIES: tuple[str, ...] = ("Male", "Female")
 
 # stratum -> mean ACE score (of 10). See module docstring caveat.
@@ -53,6 +54,8 @@ _STRATUM_MEAN_ACE_SCORE: dict[tuple[str, str], float] = {
     ("Other", "Male"): 1.5,
     ("Other", "Female"): 1.7,
 }
+
+# Country categories need their own scores. These have yet to be determined (Centraal Bureau voor de Statistiek scores?). 
 
 
 def _sample_ace_scores(strata: list[tuple[str, str]], rng: np.random.Generator) -> np.ndarray:
