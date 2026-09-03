@@ -74,8 +74,17 @@ def build_causal_model(
     confounders and effect modifiers declared in `dag_path`.
 
     Categorical common causes / effect modifiers are one-hot encoded first
-    (see `_encode_categorical_columns`); `treatment` is left as-is since
-    EconML's discrete-treatment estimators encode it internally.
+    (see `_encode_categorical_columns`); `treatment` is left unencoded
+    since EconML's discrete-treatment estimators encode it internally —
+    but it IS cast to pandas' `category` dtype if it's a string/object
+    column and not category already. dowhy 0.14's placebo_treatment_refuter
+    (the default, non-"permute" path) dispatches on
+    `type_dict[treatment_names[0]].name` and only has branches for
+    float/bool/int/category — a plain string-dtype treatment column hits
+    none of them and raises `UnboundLocalError: cannot access local
+    variable 'new_treatment'`, which is a genuinely confusing failure mode
+    for something as simple as "the treatment column wasn't cast to
+    category." Casting it here means callers don't need to know this.
 
     Unconfoundedness (no unmeasured common cause of treatment and outcome
     beyond what's listed) is an assumption this makes, not something it
@@ -88,6 +97,10 @@ def build_causal_model(
 
     df, common_causes = _encode_categorical_columns(df, common_causes)
     df, effect_modifiers = _encode_categorical_columns(df, effect_modifiers)
+
+    if pd.api.types.is_string_dtype(df[treatment]) and not isinstance(df[treatment].dtype, pd.CategoricalDtype):
+        df = df.copy()
+        df[treatment] = df[treatment].astype("category")
 
     return CausalModel(
         data=df,

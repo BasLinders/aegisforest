@@ -43,7 +43,8 @@ aegisforest/
 │   │   ├── nij_loader.py
 │   │   ├── compas_loader.py
 │   │   ├── aces_real_loader.py
-│   │   └── aces_simulated.py    # synthetic generator, US (race) and NL (country of birth)
+│   │   ├── aces_simulated.py    # synthetic generator, US (race) and NL (country of birth)
+│   │   └── recidivism_simulated.py  # synthetic generator, joined with aces_simulated's output
 │   └── schema.py                 # shared schema both aces sources must satisfy
 ├── models/
 │   ├── classifier/
@@ -80,7 +81,9 @@ aegisforest/
 4. Module A causal layer (DAG → DML → refutation) on top of the working baseline.
 5. Module B NLI contradiction detector as an independent track (can be built in parallel with Module A).
 6. Reporting templates last, once both modules produce stable outputs to render.
-7. Streamlit frontend (`app/streamlit_app.py`) wired to the real pipeline once both modules produce stable output — pure Python, no separate build/CI pipeline. Run locally with `streamlit run app/streamlit_app.py`.
+7. ~~Streamlit frontend wired to the real pipeline~~ — done. `app/streamlit_app.py` calls the real classifier, fairness audit, causal layer, and NLI/timeline checks — no more placeholders. Run locally with `streamlit run app/streamlit_app.py`.
+   Module A needed a data source to wire to and none existed (`nij_loader.py`/`compas_loader.py`/`aces_real_loader.py` are all still stubs), so `data/loaders/recidivism_simulated.py` was added: generates recidivism data joined with `generate_aces_simulated`'s output at generation time (see that module's docstring — this is a synthetic-only stand-in for the real cross-dataset join, which is still an open problem). Added `country_of_birth` to `RECIDIVISM_SCHEMA` (nullable, mutually exclusive with `race_ethnicity`) so NL-jurisdiction synthetic subjects carry their demographic stratum without misusing the race field.
+   The causal fit is genuinely slow in the UI (CausalForestDML + all three refuters, several minutes even at small n/n_estimators) — gated behind a button, cached by its inputs (`st.cache_resource`, not `st.cache_data`: `CausalEffectResult` wraps a live DoWhy `CausalModel` that isn't reliably picklable). Module B's NLI checkpoint (~1.1GB) is cached the same way.
 
 ## 5. Open questions to resolve during build
 
@@ -91,3 +94,13 @@ aegisforest/
   ~~Whether the high contradiction false-positive rate needs mitigating~~ — resolved: keep `contradiction_threshold` at 0.5 (config default), deliberately. The script's threshold sweep shows raising it trades recall for precision (0.5: 43.5% precision / 90.5% recall → 0.9: 61.5% precision / 63.5% recall → 0.95, best F1: 71.2% precision / 58.7% recall), but a missed real contradiction (false negative) is worse than an extra reviewer look (false positive) for this use case — investigations are already hectic enough that contradictions going unflagged is a live problem, and `flagged` already means "send to review," never a verdict, so the cost of over-flagging is bounded. Don't raise this threshold later without re-litigating that tradeoff explicitly.
 - No NL recidivism data loader exists yet — only the ACEs confounder layer is jurisdiction-aware so far. A real one would likely draw on WODC's Recidivism Monitor or CBS/politie open crime data (see project memory / earlier discussion on public Dutch sources).
 - Real NL ACEs data has no direct survey equivalent to CDC-Kaiser/YRBSS; `aces_real_loader.py`'s NL path would mean reshaping WODC/CBS adversity-adjacent statistics to `ACES_SCHEMA`, not loading a comparable existing dataset.
+- No real cross-dataset join exists between recidivism and ACEs data by subject identity — `recidivism_simulated.py` sidesteps this by generating both together, which only works because there's no real-world linkage problem for synthetic subjects.
+
+## 6. Known upstream bugs (dowhy 0.14 + pandas 3.0)
+
+Found while wiring the Streamlit frontend to the real pipeline — both are real bugs in the dowhy/pandas version combination this project pins, not bugs in this project's code, but worth recording so they aren't rediscovered the hard way after a dependency bump:
+
+- `placebo_treatment_refuter`'s `placebo_type="permute"` path does `data[treatment_names].values` (a list-indexed selection, so it returns a 2D array even for one column). Older pandas silently handled assigning that back as a column; pandas 3.0's stricter `maybe_convert_objects` raises `ValueError: Buffer has wrong number of dimensions (expected 1, got 2)` instead. Worked around in `models/causal/refutation.py` by not passing `placebo_type="permute"` — the default path (resample the treatment from a random distribution) hits different code and works, and is still a legitimate placebo strategy.
+- That default path only has branches for float/bool/int/`category`-dtype treatment columns (dispatched via `type_dict[treatment_names[0]].name`) — a plain string/object-dtype treatment column matches none of them and raises `UnboundLocalError: cannot access local variable 'new_treatment'`. Worked around in `models/causal/dag.py::build_causal_model`, which now casts the treatment column to `category` dtype if it isn't already, so callers don't need to know this.
+
+Both are covered by `tests/test_causal_layer.py`'s slow end-to-end test, which runs `placebo_treatment_refuter` specifically so a regression (e.g. from reverting either workaround, or a dowhy/pandas upgrade reintroducing the issue) fails a test rather than surfacing as a confusing runtime error.

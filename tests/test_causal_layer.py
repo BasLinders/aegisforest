@@ -61,16 +61,23 @@ def test_run_refuters_rejects_unknown_refuter_before_fitting_anything():
 @pytest.mark.slow
 def test_estimate_treatment_effect_end_to_end():
     """Full identify -> estimate -> refute pipeline. Deliberately tiny
-    (n=80, n_estimators=4) and limited to one refuter — CausalForestDML
-    refits are inherently slow (~1 min each even at this scale), so this
-    is the one test in the suite allowed to take a while."""
+    (n=80, n_estimators=4) — CausalForestDML refits are inherently slow
+    (~1 min each even at this scale), so this is the one test in the
+    suite allowed to take a while.
+
+    Includes placebo_treatment_refuter deliberately: dowhy 0.14's
+    placebo_type="permute" path breaks under pandas 3.0 (a real bug, see
+    refutation.py's _REFUTER_KWARGS comment) — this test would have
+    caught that regression had it existed when the fix landed, and
+    should catch it again if the workaround is ever reverted."""
     df = _causal_fixture()
+    refuters = ["random_common_cause", "placebo_treatment_refuter"]
     result = estimate_treatment_effect(
         df,
         treatment="supervision_intensity",
         outcome="recidivated",
         dag_path=DAG_SPEC_PATH,
-        refuters=["random_common_cause"],
+        refuters=refuters,
         control_value="low",
         treatment_value="high",
         n_estimators=4,
@@ -78,6 +85,6 @@ def test_estimate_treatment_effect_end_to_end():
     )
 
     assert result.ate < 0  # matches the fixture's known negative effect
-    assert "random_common_cause" in result.refutation_results
-    refutation = result.refutation_results["random_common_cause"]
-    assert set(refutation) == {"refutation_type", "estimated_effect", "new_effect", "p_value"}
+    assert set(result.refutation_results) == set(refuters)
+    for refutation in result.refutation_results.values():
+        assert set(refutation) == {"refutation_type", "estimated_effect", "new_effect", "p_value"}
