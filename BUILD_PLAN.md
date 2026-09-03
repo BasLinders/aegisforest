@@ -35,7 +35,7 @@ aegisforest/
 ├── README.md
 ├── BUILD_PLAN.md                # this file
 ├── app/
-│   └── streamlit_app.py          # Streamlit frontend (module A + B views)
+│   └── streamlit_app.py         # Streamlit frontend (module A + B views)
 ├── config/
 │   └── default.yaml             # data source toggle (aces_real | aces_simulated), model params
 ├── data/
@@ -43,7 +43,7 @@ aegisforest/
 │   │   ├── nij_loader.py
 │   │   ├── compas_loader.py
 │   │   ├── aces_real_loader.py
-│   │   ├── aces_simulated.py    # synthetic generator, US (race) and NL (country of birth)
+│   │   ├── aces_simulated.py     # synthetic generator, US (race) and NL (country of birth)
 │   │   └── recidivism_simulated.py  # synthetic generator, joined with aces_simulated's output
 │   └── schema.py                 # shared schema both aces sources must satisfy
 ├── models/
