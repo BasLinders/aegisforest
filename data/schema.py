@@ -14,7 +14,10 @@ ACES_SOURCES = ("aces_real", "aces_simulated")
 ACES_SCHEMA: dict[str, str] = {
     "subject_id": "string",
     "source": "category",  # one of ACES_SOURCES, propagated to every output
-    "demographic_stratum": "category",
+    "jurisdiction": "category",  # e.g. "US", "NL" — see demographic_stratum note below
+    "demographic_stratum": "category",  # meaning is jurisdiction-specific: e.g. race x sex
+    # for US sources, country-of-birth x sex for NL sources (NL criminal-justice
+    # data records migration background/country of birth, rarely race)
     "ace_score": "int64",
     "adversity_flags": "object",  # list[str] of individual ACE indicators
 }
