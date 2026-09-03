@@ -73,7 +73,7 @@ aegisforest/
 4. Module B outputs are always framed as "flagged for review," never as a verdict. Enforce this at the output-template level (see `reports/templates/`), not just in prose documentation.
 5. Synthetic data must be visibly labeled everywhere it's used — figure titles, report headers, CLI banners — so no output can be mistaken for real-data findings.
 
-## 4. Suggested build order
+## 4. Construction plan
 
 1. Scaffold repo structure + `pyproject.toml` + `config/default.yaml`.
 2. `data/schema.py` + both ACEs loaders (start with `aces_simulated.py`, since it has no external data dependency, to unblock pipeline development).
@@ -85,7 +85,7 @@ aegisforest/
    Module A needed a data source to wire to and none existed (`nij_loader.py`/`compas_loader.py`/`aces_real_loader.py` are all still stubs), so `data/loaders/recidivism_simulated.py` was added: generates recidivism data joined with `generate_aces_simulated`'s output at generation time (see that module's docstring — this is a synthetic-only stand-in for the real cross-dataset join, which is still an open problem). Added `country_of_birth` to `RECIDIVISM_SCHEMA` (nullable, mutually exclusive with `race_ethnicity`) so NL-jurisdiction synthetic subjects carry their demographic stratum without misusing the race field.
    The causal fit is genuinely slow in the UI (CausalForestDML + all three refuters, several minutes even at small n/n_estimators) — gated behind a button, cached by its inputs (`st.cache_resource`, not `st.cache_data`: `CausalEffectResult` wraps a live DoWhy `CausalModel` that isn't reliably picklable). Module B's NLI checkpoint (~1.1GB) is cached the same way.
 
-## 5. Open questions to resolve during build
+## 5. Open questions to resolve during construction
 
 - Exact source/access method for CDC-Kaiser ACE public-use files (may require a data-use request even for public-use tier — confirm before assuming direct download).
 - Whether NIJ dataset's supervision-level field is granular enough to serve as a clean binary/ordinal treatment variable for DML, or needs recoding.
