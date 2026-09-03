@@ -1,5 +1,5 @@
 """Pairwise NLI contradiction scoring across statement chunks from the same
-subject across interview sessions (RoBERTa-large-MNLI or similar).
+subject across interview sessions.
 
 Output is a contradiction-likelihood score per sentence pair. This must
 always be surfaced as "flagged for human review" — never as a
@@ -7,15 +7,16 @@ deception/guilt signal. `flagged` is the only field any output template
 may treat as meaningful; that framing is enforced at the
 output-template level (`reports/templates/`), not just in prose.
 
-Jurisdiction caveat: this module itself doesn't care what language the
-statements are in — it just calls whatever `checkpoint` config gives it —
-but the default, `roberta-large-mnli`, is trained on English MultiNLI and
-will not produce meaningful scores on Dutch text. Using this for Dutch
-statements requires swapping `module_b.nli.checkpoint` in
-config/default.yaml to a Dutch or multilingual NLI model (e.g. one
-fine-tuned on the Dutch or XNLI portion of a multilingual NLI corpus) —
-this hasn't been evaluated or chosen yet, see BUILD_PLAN.md's open
-questions.
+Jurisdiction: this module itself doesn't care what language the
+statements are in — it just calls whatever `checkpoint` config gives it.
+The default, `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7`,
+was chosen specifically because it's fine-tuned on ~105k Dutch NLI pairs
+(not relying on cross-lingual transfer from English) alongside English
+MNLI/XNLI, so it covers both US (English) and NL (Dutch) statements with
+one checkpoint — no jurisdiction-conditional swap needed. It uses the
+same entailment/neutral/contradiction label scheme as the
+English-only RoBERTa-large-MNLI checkpoint this replaced, so
+`_contradiction_score`'s label matching didn't need to change.
 """
 
 from __future__ import annotations
@@ -80,7 +81,7 @@ def _cross_session_pairs(statements: pd.DataFrame):
 
 def score_contradictions(
     statements: pd.DataFrame,
-    checkpoint: str = "roberta-large-mnli",
+    checkpoint: str = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
     device: str = "auto",
     contradiction_threshold: float = 0.5,
     nli_pipeline: NliPipeline | None = None,
@@ -89,8 +90,8 @@ def score_contradictions(
 
     `nli_pipeline`, if given, replaces the default checkpoint-loading
     pipeline — lets callers (including tests) inject a lightweight or fake
-    pipeline instead of downloading RoBERTa-large-MNLI (~1.4GB) every run.
-    It must behave like `transformers.pipeline("text-classification",
+    pipeline instead of downloading the default checkpoint (~1.1GB) every
+    run. It must behave like `transformers.pipeline("text-classification",
     top_k=None)`: called with a list of `{"text", "text_pair"}` dicts,
     returning one list of `{"label", "score"}` dicts per input.
 

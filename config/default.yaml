@@ -38,10 +38,14 @@ module_a:
 # Module B: statement contradiction detection
 module_b:
   nli:
-    # English-only (trained on MultiNLI) — Dutch statements need a Dutch or
-    # multilingual NLI checkpoint instead; not yet chosen/evaluated, see
-    # BUILD_PLAN.md's open questions.
-    checkpoint: roberta-large-mnli
+    # Multilingual (100 languages inference-capable; explicitly trained on
+    # ~105k Dutch NLI pairs, not just cross-lingual transfer from English)
+    # so this one checkpoint covers both US (English) and NL (Dutch)
+    # statements — no jurisdiction-conditional checkpoint switch needed.
+    # Same entailment/neutral/contradiction label scheme as the previous
+    # default (roberta-large-mnli, English-only), so contradiction.py's
+    # label matching needed no changes.
+    checkpoint: MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7
     contradiction_threshold: 0.5
     device: auto  # one of: auto, cpu, cuda
   timeline_check:

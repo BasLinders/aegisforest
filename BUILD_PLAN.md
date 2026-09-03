@@ -17,7 +17,7 @@ Core idea: Causal (not purely predictive) analysis of criminal-justice intervent
 
 ### Module B — Statement contradiction detection
 
-- NLI model (RoBERTa-large-MNLI or similar) applied pairwise across statement chunks from the same subject across interview sessions.
+- NLI model applied pairwise across statement chunks from the same subject across interview sessions. Default checkpoint is multilingual (`MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7`, trained on ~105k Dutch NLI pairs alongside English), so it covers both US and NL statements with one checkpoint — no jurisdiction-conditional swap needed.
 - Output: contradiction-likelihood scores per sentence pair, surfaced as "flagged for human review," never as a deception/guilt signal.
 - Optional extension: lightweight NER (spaCy) + timeline/entity consistency checks layered on top of NLI scores.
 
@@ -84,6 +84,6 @@ aegisforest/
 
 - Exact source/access method for CDC-Kaiser ACE public-use files (may require a data-use request even for public-use tier — confirm before assuming direct download).
 - Whether NIJ dataset's supervision-level field is granular enough to serve as a clean binary/ordinal treatment variable for DML, or needs recoding.
-- Final choice of pretrained NLI checkpoint (base vs. large trade-off given local compute). For NL statements specifically, `roberta-large-mnli` (English-only, MultiNLI) doesn't apply — needs a Dutch or multilingual NLI checkpoint, not yet evaluated.
+- ~~Final choice of pretrained NLI checkpoint~~ — resolved: `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7`, chosen over Dutch-only alternatives (e.g. `LoicDL/bert-base-dutch-cased-finetuned-snli`) specifically so one checkpoint covers both US and NL statements, and over plain-XNLI multilingual models (e.g. `joeddav/xlm-roberta-large-xnli`) since XNLI's 15 languages don't include Dutch. Not yet benchmarked against real Dutch statement data — that's still open.
 - No NL recidivism data loader exists yet — only the ACEs confounder layer is jurisdiction-aware so far. A real one would likely draw on WODC's Recidivism Monitor or CBS/politie open crime data (see project memory / earlier discussion on public Dutch sources).
 - Real NL ACEs data has no direct survey equivalent to CDC-Kaiser/YRBSS; `aces_real_loader.py`'s NL path would mean reshaping WODC/CBS adversity-adjacent statistics to `ACES_SCHEMA`, not loading a comparable existing dataset.
