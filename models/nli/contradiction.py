@@ -20,10 +20,15 @@ English-only RoBERTa-large-MNLI checkpoint this replaced, so
 
 Benchmarked against real Dutch NLI data (SICK-NL, via
 scripts/benchmark_nli_checkpoint.py): 67.6% accuracy / 65.6% macro-F1 on
-a 500-pair sample, with high recall on real contradictions (90.5%) but
-notably lower precision (42.5% — over-flags neutral pairs). That
-precision profile is why `flagged` must stay review-only, not a verdict:
-see BUILD_PLAN.md's open questions for the full breakdown and caveats.
+a 500-pair sample, with high recall on real contradictions (90.5% at the
+default threshold) but notably lower precision (43.5% — over-flags
+neutral pairs). The threshold sweep in that script shows raising
+`contradiction_threshold` trades that recall away for precision — but
+config deliberately keeps it at 0.5: a missed real contradiction is
+worse than an extra reviewer look for this use case, and `flagged`
+already means "send to review," never a verdict, so the cost of
+over-flagging is bounded. See BUILD_PLAN.md's open questions for the
+full breakdown.
 """
 
 from __future__ import annotations

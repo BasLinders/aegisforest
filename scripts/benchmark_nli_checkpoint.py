@@ -2,8 +2,16 @@
 
 Loads SICK-NL (maximedb/sick_nl on the Hugging Face Hub — a Dutch
 translation of SICK, see https://github.com/gijswijnholds/sick_nl),
-runs the checkpoint on its test split, and reports accuracy/macro-F1
-against the human-annotated ENTAILMENT/NEUTRAL/CONTRADICTION labels.
+runs the checkpoint on its test split, and reports two things:
+
+1. 3-way accuracy/macro-F1 (argmax over ENTAILMENT/NEUTRAL/CONTRADICTION)
+   — a general quality signal.
+2. A threshold sweep over the binary decision `score_contradictions()`
+   actually makes in production: is the raw CONTRADICTION-label score
+   >= `contradiction_threshold`? This is the metric that matters for
+   Module B's `flagged` output — (1) can look fine while this is bad,
+   since argmax ignores where the CONTRADICTION score sits relative to
+   the configured threshold.
 
 Not part of the test suite: needs network access to the Hub and takes
 tens of minutes on CPU for the full test split (~4900 pairs). Run it
@@ -32,16 +40,53 @@ except ImportError:
     pass
 
 from datasets import load_dataset
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    precision_recall_fscore_support,
+)
 from transformers import pipeline
 
 DEFAULT_CHECKPOINT = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
 LABELS = ("ENTAILMENT", "NEUTRAL", "CONTRADICTION")
+SWEEP_THRESHOLDS = (0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95)
 
 
 def _predicted_label(label_scores: list[dict]) -> str:
     best = max(label_scores, key=lambda item: item["score"])
     return best["label"].upper()
+
+
+def _contradiction_score(label_scores: list[dict]) -> float:
+    """Same extraction as models/nli/contradiction.py::_contradiction_score
+    — matches on 'contra' in the label, case-insensitively, so this stays
+    correct regardless of a checkpoint's exact label casing."""
+    for item in label_scores:
+        if "contra" in item["label"].lower():
+            return float(item["score"])
+    raise ValueError(f"No contradiction label found in pipeline output: {label_scores}")
+
+
+def _threshold_sweep(y_is_contradiction: list[bool], contradiction_scores: list[float]) -> list[dict]:
+    """For each candidate threshold, compute precision/recall/F1 for the
+    binary decision score_contradictions() actually makes in production:
+    flagged = contradiction_score >= threshold."""
+    rows = []
+    for threshold in SWEEP_THRESHOLDS:
+        y_pred = [score >= threshold for score in contradiction_scores]
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            y_is_contradiction, y_pred, average="binary", zero_division=0
+        )
+        rows.append(
+            {
+                "threshold": threshold,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+                "n_flagged": sum(y_pred),
+            }
+        )
+    return rows
 
 
 def run_benchmark(checkpoint: str, limit: int | None, batch_size: int) -> dict:
@@ -62,6 +107,11 @@ def run_benchmark(checkpoint: str, limit: int | None, batch_size: int) -> dict:
     report = classification_report(y_true, y_pred, labels=list(LABELS), output_dict=True, zero_division=0)
     matrix = confusion_matrix(y_true, y_pred, labels=list(LABELS))
 
+    contradiction_scores = [_contradiction_score(o) for o in outputs]
+    y_is_contradiction = [label == "CONTRADICTION" for label in y_true]
+    sweep = _threshold_sweep(y_is_contradiction, contradiction_scores)
+    best = max(sweep, key=lambda row: row["f1"])
+
     return {
         "checkpoint": checkpoint,
         "dataset": "maximedb/sick_nl (test split)",
@@ -79,6 +129,8 @@ def run_benchmark(checkpoint: str, limit: int | None, batch_size: int) -> dict:
             for label in LABELS
         },
         "confusion_matrix": {"labels": list(LABELS), "matrix": matrix.tolist()},
+        "contradiction_threshold_sweep": sweep,
+        "best_threshold_by_f1": best,
     }
 
 
@@ -102,6 +154,17 @@ def main() -> None:
 
     print(f"n={results['n_examples']}  accuracy={results['accuracy']:.4f}  macro_f1={results['macro_f1']:.4f}")
     print(f"elapsed: {results['elapsed_seconds']:.1f}s")
+    print()
+    print("contradiction_threshold sweep (binary: is this pair a real contradiction?):")
+    print(f"{'threshold':>10}  {'precision':>10}  {'recall':>10}  {'f1':>10}  {'n_flagged':>10}")
+    for row in results["contradiction_threshold_sweep"]:
+        print(
+            f"{row['threshold']:>10.2f}  {row['precision']:>10.4f}  {row['recall']:>10.4f}  "
+            f"{row['f1']:>10.4f}  {row['n_flagged']:>10d}"
+        )
+    best = results["best_threshold_by_f1"]
+    print(f"best by F1: threshold={best['threshold']} (precision={best['precision']:.4f}, recall={best['recall']:.4f})")
+    print()
     print(f"results written to {output_path}")
 
 
